@@ -22,7 +22,11 @@ This template should help get you started developing with Vue 3 in Vite. The tem
 
 # 离线命令识别demo
 
-项目结构
+**服务端下载** https://wiki.ailemon.net/docs/asrt-doc/download
+
+**API文档** https://wiki.ailemon.net/docs/asrt-doc/asrt-doc-1dkgq9td5mvjj
+
+**项目结构**
 
 ```
 - src
