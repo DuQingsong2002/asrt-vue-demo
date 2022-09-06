@@ -24,7 +24,7 @@ export const commandResolver = function(words) {
   commands.forEach((_, key) => weightMap.set(key, 0))
   
   let result = null
-  words.forEach(word => {
+  words.forEach((word, key) => {
     for (const item of weightMap) {
 
       const commandKeywords = commands.get(item[0]).join('')
@@ -34,6 +34,9 @@ export const commandResolver = function(words) {
         weightMap.set(item[0], item[1]+1)
         if(!result || result[1] < item[1]+1) {
           result = [item[0], item[1]+1]
+          if(item[1]+1 > words.length - key) {
+            break
+          }
         }
       }
     }
@@ -55,13 +58,16 @@ export const commandParamResolver = function(command, words) {
   params.forEach(item => weightMap.set(item, 0))
 
   let result = null
-  words.forEach(word => {
+  words.forEach((word, key) => {
     
     for (const key of weightMap) {
       if(key[0].includes(word)) {
         weightMap.set(key[0], key[1]+1)
         if(!result || result[1] < key[1]+1) {
           result = [key[0], key[1]+1]
+          if(key[1]+1 > words.length - key) {
+            break
+          }
         }
       }
     }
