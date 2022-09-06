@@ -7,7 +7,9 @@
  * @version 1.0.0
  */
 
-import { ref } from 'vue';
+import { onMounted, onUnmounted, reactive, ref } from 'vue';
+import { commands, commandsParam, dict, executeCommand } from '../store/command';
+import { commandParamResolver, commandResolver, wordsResolver } from '../util/command-util';
 
 const message = ref('')
 
@@ -20,6 +22,17 @@ let stopTimeoutID = null
 
 let rec;
 const starting = ref(false)
+const globalEvent = new Map()
+
+onMounted(() => {
+
+	document.body.addEventListener('keydown', globalEvent.set('keydown', e => e.code === "Space" && startReocrd()).get('keydown'))
+	document.body.addEventListener('keyup', globalEvent.set('keyup', e => e.code === "Space" && endRecord()).get('keyup'))
+})
+
+onUnmounted(() => {
+	globalEvent.forEach((fn, eKey) => document.body.removeEventListener(eKey, fn))
+})
 
 const setMessage = function(...msg) {
 	console.log(msg)
@@ -56,7 +69,7 @@ function recStart(){
  
 function recStop(){
   rec.stop(function(blob,duration){
-			setMessage(blob, (window.URL||webkitURL).createObjectURL(blob),"时长:"+duration+"ms");
+			setMessage("录制完成, 时长:"+duration+"ms");
       rec.close();
       rec=null;
 
@@ -79,7 +92,7 @@ const startReocrd = function(event){
 
 	if(starting.value) return
 	starting.value = true
-	setMessage('录音中....')
+	setMessage('录音中....\n松开或移出停止录音')
 
 	recOpen(function(){
 	    recStart();
@@ -88,6 +101,7 @@ const startReocrd = function(event){
 }
 
 const endRecord = function(event){
+	if(!rec) return
 	clearTimeout(stopTimeoutID)
 	recStop();
 	starting.value = false
@@ -97,7 +111,7 @@ const endRecord = function(event){
 const upload = function(){
 	
 	setMessage('正在上传识别....')
-	
+	const starta = performance.now()
 	 
 	const reader=new FileReader();
 	reader.onloadend=function(){
@@ -107,7 +121,7 @@ const upload = function(){
 				'byte_width': 2,
 				'samples': (/.+;\s*base64\s*,\s*(.+)$/i.exec(reader.result)||[])[1]
 			}
-			fetch('http://127.0.0.1:20001/all', {
+			fetch('http://127.0.0.1:20001/speech', {
 				method: 'post',
 				headers: {
 					'Content-Type': 'application/json',
@@ -117,9 +131,19 @@ const upload = function(){
 				if(!resp.ok || resp.status !== 200) {
 					throw Error('上传失败')	
 				}
-				message.value = await resp.json()
+				resp = await resp.json() 
+				const start = performance.now()
+				const words = wordsResolver(resp.result)
+				const command = commandResolver(words)
+				const commandParams = commandParamResolver(command, words)
+				const end = performance.now()
+				message.value = resp.result + '\n执行命令: ' + command + commandParams + '\n耗时: '
+				executeCommand(command, commandParams)
+				message.value = [`识别拼音${resp.result}`, `执行命令`, `<b>${command} ${commandParams}</b>`, `总计耗时: ${(end-starta).toFixed(2)}ms`, `命令解析耗时: ${(end-start).toFixed(2)}ms`].join('<br />')
+
 			}).catch((err) => {
 				setMessage('程序异常 ' + err)
+				console.error(err)
 			})
 	};
 	reader.readAsDataURL(currentAudio.value.blob);
@@ -129,7 +153,7 @@ const upload = function(){
 const uploadLocalMav = function() {
 	const file = document.createElement('input')
 	file.type = 'file'
-	file.accept = 'audio/'
+	file.accept = '.wav'
 	// file.multiple = true
 	file.click()
 	file.onchange = function(value) {
@@ -145,18 +169,23 @@ const uploadLocalMav = function() {
 	}
 }
 
+const handleChangeAudio = function(audioItem) {
+	setMessage(`选择音频 ${audioItem.dataURL} 大小 ${audioItem.blob.size} k`);
+	currentAudio.value = audioItem
+}
+
 
 </script>
 
 
 <template>
-		<section class="audio-panel" @keydown.space="startReocrd" @keyup.space="endRecord">
+		<section class="audio-panel" >
     
 			<div class="audio-panel__head">
 
 				<button @click="uploadLocalMav" :disabled="starting">添加本地wav</button>
 
-				<button @mousedown="startReocrd" @mouseup="endRecord" >
+				<button @mousedown="startReocrd" @mouseup="endRecord" @mouseout="endRecord" >
 					<img src="./../assets/icon/audio.svg" width="20" v-if="!starting" />
 					<img src="./../assets/icon/audio-fill.svg" width="20" v-else />
 				</button>
@@ -165,18 +194,28 @@ const uploadLocalMav = function() {
 
 			</div>
 			<div class="audio-panel__body">
-				<p class="audio-panel__body__list">
+				<div class="audio-panel__body__list">
+					点击选择音频
 					<audio v-for="(item, key) in audios" 
 									:key="key" 
 									:src="item.dataURL"
 									controls
 									:class="{'--checked': currentAudio === item}"
-									@focus="currentAudio = item" />
+									@focus="handleChangeAudio(item)" />
 					<!-- 当前没有音频文件...<button>+</button> -->
-				</p>
-				<p class="audio-panel__body__results">
-					{{ message }}
-				</p>
+				</div>
+				<div class="audio-panel__body__list">
+					<p>全局字典</p>
+					<div><b style="white-space: nowrap;" v-for="item in dict" :key="item">{{item[0]}}{{item[1][0]}},</b></div>
+					
+					<p>支持命令</p>
+					<div><b style="white-space: nowrap;" v-for="item in commands" :key="item">{{item[1].join(',')}},</b></div>
+					
+					<p>命令参数</p>
+					<div><b style="white-space: nowrap;" v-for="item in commandsParam" :key="item">{{item[1].join(',')}},</b></div>
+				</div>
+				<div class="audio-panel__body__results" v-html="message">
+				</div>
 			</div>
 		</section>
 		<p><b>按住空格</b> 或 <b>长按右上角麦克风</b> 录音</p>
@@ -189,7 +228,7 @@ const uploadLocalMav = function() {
 	border: 1px solid #ddd;
 	border-radius: 4px;
 	padding: 20px;
-	width: 600px;
+	width: 960px;
 }
 
 .audio-panel__head {
@@ -204,6 +243,7 @@ const uploadLocalMav = function() {
 
 .audio-panel__body {
 	display: flex;
+	margin-top: 20px;
 }
 
 @media only screen and (max-width: 768px) {
