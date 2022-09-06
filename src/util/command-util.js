@@ -24,6 +24,10 @@ export const commandResolver = function(words) {
   commands.forEach((_, key) => weightMap.set(key, 0))
   
   let result = null
+
+  // 命令匹配成功就移到后面，减小命令词对命令参数计算的影响 (思考中...)
+  // let matchedWordsIndex = []
+
   words.forEach((word, key) => {
     for (const item of weightMap) {
 
@@ -41,6 +45,7 @@ export const commandResolver = function(words) {
       }
     }
   })
+
   return result ? result[0] : ''
 }
 
@@ -58,7 +63,9 @@ export const commandParamResolver = function(command, words) {
   params.forEach(item => weightMap.set(item, 0))
 
   let result = null
-  words.forEach((word, key) => {
+  
+  // 从后往前，减小命令关键字对参数计算的影响
+  words.reverse().forEach((word, key) => {
     
     for (const key of weightMap) {
       if(key[0].includes(word)) {

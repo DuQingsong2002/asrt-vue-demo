@@ -4,6 +4,7 @@ import {ref} from 'vue'
  * 全局字典
  */
 export const dict = new Map()
+dict.set('a', ['安'])
 dict.set('an', ['安', '全'])
 dict.set('cai', ['菜'])
 dict.set('da', ['打'])
