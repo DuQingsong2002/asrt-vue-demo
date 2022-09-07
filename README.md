@@ -35,10 +35,15 @@ This template should help get you started developing with Vue 3 in Vite. The tem
 --- ...
 -- components
 --- AudioCapture.vue 音频采集UI
--- store
---- command.js 字典命令相关数据
 -- util
---- command-util.js 命令解析工具函数
+--- dictText.js asrt的字典
+--- ...
+- lib
+-- command 
+--- command-resolve.js 关键字解析相关函数
+--- command.js 存放注册字典命令
+-- util
+---  asrt-util.js asrt 相关的工具函数
 ```
 
 
