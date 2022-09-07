@@ -1,5 +1,6 @@
 
 let instance = null
+let recording = false
 
 const getRecorder = function() {
 
@@ -17,7 +18,14 @@ const getRecorder = function() {
  */
 export const startRecorder = function() {
 
+  if(recording) {
+    
+    return
+  }
+
   const recorder = getRecorder()
+
+  recording = true
 
   return new Promise((resolve, reject) => {
 
@@ -35,12 +43,18 @@ export const stopRecorder = function() {
 
   return new Promise((resolve, reject) => {
 
+    if(!recording) {
+      return reject()
+    }
+
     recorder.stop((blob, duration) => {
       resolve({blob, duration})
       recorder.close()
+      recording = false
     }, (err) => {
       reject(err)
       recorder.close()
+      recording = false
     })
   })
 }
