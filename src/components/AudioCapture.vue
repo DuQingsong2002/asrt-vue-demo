@@ -69,7 +69,7 @@ const setMessage = function(...msg) {
 	message.value = msg.join('\n')
 }
 
-const successHandler = function(blob, duration) {
+const successHandler = function({blob, duration}) {
 
 	setMessage('录音完成', '大小' + (blob.size/1024).toFixed(2) + 'kb', '时间:' + duration + 'ms')
 	audios.value.push({

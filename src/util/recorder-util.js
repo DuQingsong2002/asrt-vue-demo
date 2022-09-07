@@ -36,7 +36,7 @@ export const stopRecorder = function() {
   return new Promise((resolve, reject) => {
 
     recorder.stop((blob, duration) => {
-      resolve(blob, duration)
+      resolve({blob, duration})
       recorder.close()
     }, (err) => {
       reject(err)
