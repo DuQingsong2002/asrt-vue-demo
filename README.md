@@ -5,6 +5,7 @@
 **服务端下载** https://wiki.ailemon.net/docs/asrt-doc/download
 
 **API文档** https://wiki.ailemon.net/docs/asrt-doc/asrt-doc-1dkgq9td5mvjj
+**CSDN** https://blog.csdn.net/qq_25211081/article/details/126662734
 
 **项目结构**
 
