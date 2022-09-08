@@ -1,23 +1,3 @@
-# Vue 3 + Vite
-
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
-
-
-
-## Recommended IDE Setup
-
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar)
-
-
-
-# ASRT
-
-一个基于深度学习的中文语音识别系统 https://github.com/nl8590687/ASRT_SpeechRecognition
-
-# Recorder
-
-用于html5录音 https://github.com/xiangyuecn/Recorder
-
 
 
 # 离线命令识别demo
@@ -85,6 +65,26 @@ This template should help get you started developing with Vue 3 in Vite. The tem
 5. 执行命令
 
 
+
+# Vue 3 + Vite
+
+This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+
+
+
+## Recommended IDE Setup
+
+- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar)
+
+
+
+# ASRT
+
+一个基于深度学习的中文语音识别系统 https://github.com/nl8590687/ASRT_SpeechRecognition
+
+# Recorder
+
+用于html5录音 https://github.com/xiangyuecn/Recorder
 
 
 

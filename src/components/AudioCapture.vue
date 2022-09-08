@@ -13,6 +13,7 @@ import {dictText} from '../util/dictText'
 import {startRecorder, stopRecorder} from './../util/recorder-util'
 import { commandParams, commands } from '../../lib/command/command'
 import * as CommandResolve from './../../lib'
+import Modal from './modal/Modal.vue';
 
 const message = ref('')
 
@@ -26,6 +27,8 @@ let stopTimeoutID = null
 const starting = ref(false)
 const globalEvent = new Map()
 
+const showModel = ref(false)
+
 onBeforeMount(() => {
 	
 	CommandResolve.useDict(asrtDictTextToJSON(dictText))
@@ -38,8 +41,8 @@ onBeforeMount(() => {
 
 onMounted(() => {
 
-	document.body.addEventListener('keydown', globalEvent.set('keydown', e => e.code === "Space" && start()).get('keydown'))
-	document.body.addEventListener('keyup', globalEvent.set('keyup', e => e.code === "Space" && stop()).get('keyup'))
+	document.body.addEventListener('keydown', globalEvent.set('keydown', e => e.code === "Space" && start(showModel.value=true)).get('keydown'))
+	document.body.addEventListener('keyup', globalEvent.set('keyup', e => e.code === "Space" && stop(showModel.value=false)).get('keyup'))
 })
 
 onUnmounted(() => {
@@ -61,12 +64,12 @@ switch(command) {
 		break;
 	default:
 		console.warn(`命令${command}不存在`)
-}
+	}
 }
 
 const setMessage = function(...msg) {
 	console.log(msg)
-	message.value = msg.join('\n')
+	message.value = msg.join('<br />')
 }
 
 const successHandler = function({blob, duration}) {
@@ -87,19 +90,19 @@ const errorHandler = function(err) {
 const start = function(){
 
 	if(starting.value) return
-	starting.value = true
 	setMessage('录音中....\n松开或移出停止录音')
-	startRecorder().then(() => {
-		starting.value = true
-		stopTimeoutID = setTimeout(() => stopRecorder().then(successHandler).catch(errorHandler), 1000 * 10)
-	})
+
+	startRecorder()
+		.then(() => {
+			starting.value = true
+			stopTimeoutID = setTimeout(() => stopRecorder().then(successHandler).catch(errorHandler), 1000 * 10)
+		})
+		.catch(() => starting.value = false)
 }
 
 const stop = function(){
 	
 	clearTimeout(stopTimeoutID)
-
-	if(!starting.value) return
 
 	stopRecorder()
 		.then(successHandler)
@@ -114,8 +117,8 @@ const upload = function(){
 	
 	createASRTRequestData(currentAudio.value.blob)
 		.then(data => {
-			console.log('data', data);
-			fetch('http://192.168.0.189:20001/speech', {
+
+			fetch('http://127.0.0.1:20001/speech', {
 				method: 'post',
 				headers: {
 					'Content-Type': 'application/json',
@@ -161,7 +164,7 @@ const uploadLocalMav = function() {
 }
 
 const handleChangeAudio = function(audioItem) {
-	setMessage(`选择音频 ${audioItem.dataURL} 大小 ${audioItem.blob.size} k`);
+	setMessage(`选择音频 ${audioItem.dataURL}`, ` 大小 ${(audioItem.blob.size / 1024).toFixed(2)} k`);
 	currentAudio.value = audioItem
 }
 
@@ -208,6 +211,14 @@ const handleChangeAudio = function(audioItem) {
 			</div>
 		</section>
 		<p><b>按住空格</b> 或 <b>长按右上角麦克风</b> 录音</p>
+
+		<Modal :show="starting && showModel" >
+
+			<img src="./../assets/icon/audio-fill.svg" />
+			<template #footer>
+				正在录音，松开停止
+			</template>
+		</Modal>
 
 </template>
 
