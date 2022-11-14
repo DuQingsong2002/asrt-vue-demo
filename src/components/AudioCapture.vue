@@ -115,7 +115,7 @@ const upload = function(){
 	createASRTRequestData(currentAudio.value.blob)
 		.then(data => {
 			console.log('data', data);
-			fetch('http://192.168.0.189:20001/speech', {
+			fetch('http://127.0.0.1:20001/all', {
 				method: 'post',
 				headers: {
 					'Content-Type': 'application/json',
@@ -123,11 +123,11 @@ const upload = function(){
 				body: JSON.stringify(data),
 			}).then(async resp => {
 				if(!resp.ok || resp.status !== 200) {
-					throw Error('上传失败')	
+					throw Error('上传失败')	    
 				}
 				resp = await resp.json() 
 				const start = performance.now()
-				const {command, params} = CommandResolve.resolveAll(resp.result)
+				const {command, params} = CommandResolve.resolveAll(resp.result.speech, resp.result.language)
 				const end = performance.now()
 				message.value = resp.result + '\n执行命令: ' + command + params + '\n耗时: '
 				executeCommand(command, params)
