@@ -1,5 +1,5 @@
 <script setup>
-
+// @ts-nocheck
 /**
  * 音频采集
  * @author Du Qingsong
@@ -8,11 +8,11 @@
  */
 
 import { onBeforeMount, onMounted, onUnmounted, ref } from 'vue';
-import {asrtDictTextToJSON, createASRTRequestData} from './../../lib/util/asrt-util'
+import { createASRTRequestData } from '../../lib/util/asrt-util'
 import {dictText} from '../util/dictText'
 import {startRecorder, stopRecorder} from './../util/recorder-util'
 import { commandParams, commands } from '../../lib/command/command'
-import * as CommandResolve from './../../lib'
+import * as CommandResolve from '../../lib'
 
 const message = ref('')
 
@@ -27,12 +27,12 @@ const starting = ref(false)
 const globalEvent = new Map()
 
 onBeforeMount(() => {
-	
-	CommandResolve.useDict(asrtDictTextToJSON(dictText))
+	CommandResolve.useAsrtDict(dictText)
 	CommandResolve.registerCommand('open', '打开' )
 	CommandResolve.registerCommand('target', '定位', '跳转')
 	CommandResolve.registerCommandParams('open', '菜单', '导航', '标图标绘')
-	CommandResolve.registerCommandParams('target', '中国', '陕西', '西安', '雁塔区', '吴忠', '定西')
+	// CommandResolve.registerCommandParams('target', '大十八户村', '八十八户村', '二十八村', '幸福十八村', '吴忠', '定西')
+	CommandResolve.registerCommandParams('target', '八十八户村','大十八户村')
 	
 })
 
@@ -115,7 +115,7 @@ const upload = function(){
 	createASRTRequestData(currentAudio.value.blob)
 		.then(data => {
 			console.log('data', data);
-			fetch('http://127.0.0.1:20001/all', {
+			fetch('http://192.168.0.189:20001/all', {
 				method: 'post',
 				headers: {
 					'Content-Type': 'application/json',
