@@ -115,7 +115,7 @@ const upload = function(){
 	createASRTRequestData(currentAudio.value.blob)
 		.then(data => {
 			console.log('data', data);
-			fetch('http://192.168.0.189:20001/all', {
+			fetch('http://127.0.0.1:20001/all', {
 				method: 'post',
 				headers: {
 					'Content-Type': 'application/json',

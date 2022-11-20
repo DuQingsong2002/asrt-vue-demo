@@ -10,6 +10,12 @@ import { commands, commandParams, getDict, getInvertedIndex } from "./command"
  */
 type WeightList = [number, number, number, number, number]
 
+interface Keywords {
+
+  label: string,
+  speech: number[][],
+}
+
 
 /**
  * 拼音文字解析
@@ -118,9 +124,31 @@ export const resolveCommandParams = function(command: string, speechs: string[],
     }
   })
 
+  // 权重影响因子
+  //  (主要算法类似于 求两个字符串的公共子串)
+  // 1. 全拼最大连续匹配个数
+  // 2. 文字最大连续匹配个数
+  // 3. 全拼连续累计匹配次数 
+  // 4. 文字连续匹配次数
+  // 5. 拼音最大连续匹配个数
+  // 6. 拼音连续匹配次数
+  // 7. 全拼包含个数
+  // 9. 拼音包含个数
+  // 8. 文字包含个数
+  // 10. 
+
+  // example: da3 kai1 biao1 tu2 biao1 hui4
+  // slice(2)
+  // 给定一组数据，查找该数据在example中最大连续匹配的次数
+  // biao1 tu2
+
   weightMap.forEach((weight, param) => {
+    
+    // 参数对应的词典树索引
     const paramIndexes = resolveSpeechs(Array.from(param))
+    // 索引对应的拼音
     const probSpeechs:string[][] = paramIndexes.map(item => item.map(i => i[0]+i[1]))
+    // 
     const probLabels = resolveWordsByIndexes(paramIndexes)
 
 
@@ -132,6 +160,8 @@ export const resolveCommandParams = function(command: string, speechs: string[],
       firstLevel: 0,
       secondLevel: 0,
     }
+    // 求probSpeechs和speechs的公共部分
+    // 
 
     probSpeechs.forEach((shs, key) => {
 
