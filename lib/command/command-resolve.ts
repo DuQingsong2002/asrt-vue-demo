@@ -2,16 +2,28 @@
 // @ts-nocheck
 import { globalOptions } from ".."
 import { Pin_Yin, Sheng_Diao, Wen_Zi } from "../types"
+import { getLCS } from "../util/lcs"
 import { commands, commandParams, getDict, getInvertedIndex } from "./command"
 
 /**
  * 多级权重
- * [ 连续精确匹配次数(音调一致)，连续匹配次数(拼音不包含音调)，精确包含次数(音调一致)，普通包含次数(不包含音调)，模糊权重(待定) ]
+  权重影响因子 （顺序无关）
+   (主要算法类似于 求两个字符串的公共子串)
+  0. 全拼最大连续匹配个数
+  1. 文字最大连续匹配个数
+  2. 全拼连续累计匹配次数 
+  3. 文字连续匹配次数
+  4. 拼音最大连续匹配个数
+  5. 拼音连续匹配次数
+  6. 全拼包含个数
+  7. 拼音包含个数
+  8. 文字包含个数
+  9. 各种模糊匹配
  */
-type WeightList = [number, number, number, number, number]
+type WeightList = [number, number, number, number, number, number, number, number, number, number]
 
+  
 interface Keywords {
-
   label: string,
   speech: number[][],
 }
@@ -63,46 +75,6 @@ export const resolveWordsByIndexes = function(indexes: [Pin_Yin, Sheng_Diao][]) 
  */
 export const resolveCommand = function(speechs: string[], language: string[]) {
   
-  // const words = resolveWords(speechs)
-
-  // // { 命令 => 权重 }
-  // const weightMap = new Map()
-  // commands.forEach((command, key) => {
-  //   // 排除命令文字数大于解析文字数量的
-  //   if(Math.max(...command.map(i => i.length)) <= speechs.length) {
-  //     weightMap.set(key, 0)
-  //   }
-  // })
-  
-  // let result = null
-
-  // if(!weightMap.size) {
-
-  //   return result
-  // }
-
-  // Array.from(words).forEach((word, key) => {
-  //   for (const item of weightMap) {
-
-  //     const commandKeywords = commands.get(item[0]).join('')
-
-  //     if(commandKeywords.includes(word)) {
-
-  //       const w = item[1] + 1
-  //       weightMap.set(item[0], w)
-
-  //       if(!result || result[1] < w) {
-
-  //         result = [item[0], w]
-  //         if(w >= (words.length / 2)) {
-  //           break
-  //         }
-  //       }
-  //     }
-  //   }
-  // })
-
-  // return result ? result[0] : ''
 }
 
 /**
@@ -120,22 +92,9 @@ export const resolveCommandParams = function(command: string, speechs: string[],
   const weightMap:Map<string, WeightList> = new Map()
   params.forEach(item => {
     if(item.length <= speechs.length) {
-      weightMap.set(item, [0, 0, 0, 0, 0])
+      weightMap.set(item, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     }
   })
-
-  // 权重影响因子
-  //  (主要算法类似于 求两个字符串的公共子串)
-  // 1. 全拼最大连续匹配个数
-  // 2. 文字最大连续匹配个数
-  // 3. 全拼连续累计匹配次数 
-  // 4. 文字连续匹配次数
-  // 5. 拼音最大连续匹配个数
-  // 6. 拼音连续匹配次数
-  // 7. 全拼包含个数
-  // 9. 拼音包含个数
-  // 8. 文字包含个数
-  // 10. 
 
   // example: da3 kai1 biao1 tu2 biao1 hui4
   // slice(2)
@@ -151,86 +110,50 @@ export const resolveCommandParams = function(command: string, speechs: string[],
     // 
     const probLabels = resolveWordsByIndexes(paramIndexes)
 
+    const L_1_LCS = getLCS(speechs, probSpeechs)
+    const L_2_LCS = getLCS(language, probLabels)
+    const L_5_LCS = getLCS(speechs.map(s=>s.slice(0, -1)), probLabels.map(i=>i.map(i => i?.slice(0, -1))))
+    // const L_2_LCS = getLCS(language, probLabels)
+    // const L_2_LCS = getLCS(language, probLabels)
+    // 0. 全拼最大连续匹配个数
+    // 1. 文字最大连续匹配个数
+    // 2. 全拼连续累计匹配次数 
+    // 3. 文字连续匹配次数
+    // 4. 拼音最大连续匹配个数
+    // 5. 拼音连续匹配次数
+    // 6. 全拼包含个数
+    // 7. 拼音包含个数
+    // 8. 文字包含个数
+    // 9. 各种模糊匹配
+    weight[0] = L_1_LCS.maxLen
+    weight[1] = L_2_LCS.maxLen
+    // weight[2] = L_1_LCS.total
+    // weight[3] = L_2_LCS.total
+    weight[4] = L_5_LCS.maxLen
+    weight[5] = L_5_LCS.maxLen
+    weight[6] = L_5_LCS.maxLen
 
-    const continuousCounter = {
-      firstIndex: -1,
-      secondIndex: -1,
-      firstSpeechIndex: -1,
-      secondSpeechIndex: -1,
-      firstLevel: 0,
-      secondLevel: 0,
-    }
-    // 求probSpeechs和speechs的公共部分
-    // 
-
-    probSpeechs.forEach((shs, key) => {
-
-      // 一级
-      let isFind = false
-      // 上次是否有查到，没有就是新的开始
-      if(continuousCounter.firstLevel === 0) {
-        const newIndex = speechs.findIndex(i => shs.includes(i))
-        if(newIndex > -1) {
-          continuousCounter.firstLevel++
-          continuousCounter.firstSpeechIndex = newIndex 
-          continuousCounter.firstIndex = key
-          isFind = true
-        }else { // 没有匹配重置
-          continuousCounter.firstLevel = 0
-        }
-        
-      }else {
-        // 如果上次查到了，就用上次索引的下一个匹配
-        if(!!speechs.slice(continuousCounter.firstSpeechIndex).find(i => shs.includes(i))) {
-          continuousCounter.firstLevel++
-          continuousCounter.firstSpeechIndex = key 
-          isFind = true
-        // 如果下次没有匹配上，刷新
-        }else {
-          continuousCounter.firstLevel = 0
-          const newIndex = speechs.findIndex(i => shs.includes(i))
-          if(newIndex > -1) {
-            continuousCounter.firstLevel++
-            continuousCounter.firstSpeechIndex = newIndex 
-            continuousCounter.firstIndex = key 
-            isFind = true
-          }
-        }
-      }
-      if(isFind) {
-        if(continuousCounter.firstLevel > 1) {
-          weight[0]++
-        }
-      }
-      
-      // 二级
-      if(speechs.find(item => shs.find(subItem => subItem.slice(0, -1) === item.slice(0, -1)))) {
-        continuousCounter.secondLevel++
-        if(continuousCounter.secondLevel > 1) {
-          weight[1]++
-        }
-      }else {
-        continuousCounter.secondLevel = 0
-      }
-    })
     
-    // 三四级权重分析
+    // 七八级权重分析
     const flatProbSpeechs = probSpeechs.flat()
     speechs.forEach(speech => {
       flatProbSpeechs.forEach(sp => {
         // 三级全拼
-        if(sp === speech) weight[2]++
+        if(sp === speech) weight[6]++
         // 四级不带音调
-        if(sp.slice(0, -1) === speech.slice(0, -1)) weight[3]++
+        if(sp.slice(0, -1) === speech.slice(0, -1)) weight[7]++
+
+        if(sp.slice(0, 1) === speech.slice(0, 1)) weight[9]++
       })
     })
 
     // 五级...
     probLabels.flat(Infinity).forEach((word) => {
       if(language.includes(word)) {
-        weight[4]++
+        weight[8]++
       }
     })
+
   })
   
   return Array.from(weightMap)

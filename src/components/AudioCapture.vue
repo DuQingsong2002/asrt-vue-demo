@@ -32,7 +32,7 @@ onBeforeMount(() => {
 	CommandResolve.registerCommand('target', '定位', '跳转')
 	CommandResolve.registerCommandParams('open', '菜单', '导航', '标图标绘')
 	// CommandResolve.registerCommandParams('target', '大十八户村', '八十八户村', '二十八村', '幸福十八村', '吴忠', '定西')
-	CommandResolve.registerCommandParams('target', '八十八户村','大十八户村')
+	CommandResolve.registerCommandParams('target', '八十八户村','大十八户村','文登花园', '文峰花园', '测试', '文峰花园', '文登花园')
 	
 })
 
