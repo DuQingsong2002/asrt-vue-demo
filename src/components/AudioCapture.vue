@@ -28,11 +28,11 @@ const globalEvent = new Map()
 
 onBeforeMount(() => {
 	CommandResolve.useAsrtDict(dictText)
-	CommandResolve.registerCommand('open', '打开' )
-	CommandResolve.registerCommand('target', '定位', '跳转')
-	CommandResolve.registerCommandParams('open', '菜单', '导航', '标图标绘')
+	CommandResolve.registerCommand('打开', '打开' )
+	CommandResolve.registerCommand('定位', '定位', '跳转')
+	CommandResolve.registerCommandParams('打开', '菜单', '导航', '标图标绘')
 	// CommandResolve.registerCommandParams('target', '大十八户村', '八十八户村', '二十八村', '幸福十八村', '吴忠', '定西')
-	CommandResolve.registerCommandParams('target', '八十八户村','大十八户村','文登花园', '文峰花园', '测试', '文峰花园', '文登花园')
+	CommandResolve.registerCommandParams('定位', '八十八户村','大十八户村','文登花园', '文峰花园', '测试', '文峰花园', '文登花园')
 	
 })
 
@@ -53,10 +53,10 @@ onUnmounted(() => {
 const executeCommand = function(command, params) {
 
 switch(command) {
-	case 'open':
+	case '打开':
 		console.log('执行命令: 打开' + params);
 		break;
-	case 'target':
+	case '定位':
 		console.log('执行命令: 定位' + params);
 		break;
 	default:
@@ -115,7 +115,7 @@ const upload = function(){
 	createASRTRequestData(currentAudio.value.blob)
 		.then(data => {
 			console.log('data', data);
-			fetch('http://127.0.0.1:20001/all', {
+			fetch('http://192.168.0.189:20001/all', {
 				method: 'post',
 				headers: {
 					'Content-Type': 'application/json',
@@ -198,7 +198,7 @@ const handleChangeAudio = function(audioItem) {
 				<div class="audio-panel__body__list">
 					
 					<p>支持命令</p>
-					<div><b v-for="item in commands" :key="item">{{item[0]}}:{{item[1].join(',')}},<br/></b></div>
+					<div><b v-for="item in commands" :key="item">{{item[0]}}:{{item[1]}},<br/></b></div>
 					
 					<p>命令参数</p>
 					<div><b v-for="item in commandParams" :key="item">{{item[0]}}:{{item[1].join(',')}},<br/></b></div>

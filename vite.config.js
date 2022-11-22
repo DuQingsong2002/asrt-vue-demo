@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [vue()],
   build: {
     lib: {
-      entry: path.resolve(__dirname, 'packages/index.ts'),
+      entry: path.resolve(__dirname, 'lib/index.ts'),
       name: 'CommandResolve',
       fileName: (format) => `command.resolve.${format}.js`
     }
