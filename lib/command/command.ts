@@ -56,13 +56,7 @@ export const registerCommand = function(command, ...keywords) {
   commands.set(command, keywords)
 }
 
-export const registerCommandParams = function(command, ...params) {
-
-  let _params = commandParams.get(command)
-
-  if(!_params) {
-    return commandParams.set(command, params)
-  }
-  _params.push(...params)
+export const registerCommandParams = function(command, params) {
+  return commandParams.set(command, params)
 
 }

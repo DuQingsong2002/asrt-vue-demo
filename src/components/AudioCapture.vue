@@ -13,7 +13,7 @@ import {dictText} from '../util/dictText'
 import {startRecorder, stopRecorder} from './../util/recorder-util'
 import { commandParams, commands } from '../../lib/command/command'
 import * as CommandResolve from '../../lib'
-
+import TestKeywords from './../assets/test.json'
 const message = ref('')
 
 const audios = ref([])
@@ -30,9 +30,30 @@ onBeforeMount(() => {
 	CommandResolve.useAsrtDict(dictText)
 	CommandResolve.registerCommand('open', '打开' )
 	CommandResolve.registerCommand('target', '定位', '跳转')
-	CommandResolve.registerCommandParams('open', '菜单', '导航', '标图标绘')
+	CommandResolve.registerCommandParams('open', ['菜单', '导航', '标图标绘'])
 	// CommandResolve.registerCommandParams('target', '大十八户村', '八十八户村', '二十八村', '幸福十八村', '吴忠', '定西')
-	CommandResolve.registerCommandParams('target', '八十八户村','大十八户村','文登花园', '文峰花园', '测试', '文峰花园', '文登花园')
+	CommandResolve.registerCommandParams('target', TestKeywords)
+	// const db = indexedDB.open('cache_db', 1)
+	// db.onsuccess = function(e) {
+	// 	const db = e.target.result
+	// 	const cache = db.transaction(["cache"]).objectStore("cache").get(1)
+	// 	cache.onerror = function() {
+
+	// 		fetch('http://127.0.0.1:8080/xuzhou/layer/queryNames')
+	// 			.then(async (resp) => {
+	// 				const data = (await resp.json()).data
+	// 				db.createObjectStore("cache", { autoIncrement: true });
+	// 				db.transaction(["cache"], "readwrite").objectStore("cache").add(data)
+	// 				CommandResolve.registerCommandParams('target', data)
+	// 				db.close()
+	// 			})
+	// 	}
+		
+	// 	cache.onsuccess = function() {
+	// 		db.close()
+	// 		CommandResolve.registerCommandParams('target', cache.result)
+	// 	}
+	// }
 	
 })
 
@@ -129,9 +150,9 @@ const upload = function(){
 				const start = performance.now()
 				const {command, params} = CommandResolve.resolveAll(resp.result.speech, resp.result.language)
 				const end = performance.now()
-				message.value = resp.result + '\n执行命令: ' + command + params + '\n耗时: '
+				// message.value = resp.result + '\n执行命令: ' + command + params.slice(0, 10) + '\n耗时: '
 				executeCommand(command, params)
-				message.value = [`识别拼音${resp.result}`, `执行命令`, `<b>${command} ${params}</b>`, `总计耗时: ${(end-starta).toFixed(2)}ms`, `命令解析耗时: ${(end-start).toFixed(2)}ms`].join('<br />')
+				message.value = [`识别拼音${resp.result}`, `执行命令`, `<b>${command} ${params.slice(0, 10)}</b>`, `总计耗时: ${(end-starta).toFixed(2)}ms`, `命令解析耗时: ${(end-start).toFixed(2)}ms`].join('<br />')
 
 			})
 		})
@@ -196,12 +217,10 @@ const handleChangeAudio = function(audioItem) {
 					<!-- 当前没有音频文件...<button>+</button> -->
 				</div>
 				<div class="audio-panel__body__list">
-					
 					<p>支持命令</p>
 					<div><b v-for="item in commands" :key="item">{{item[0]}}:{{item[1].join(',')}},<br/></b></div>
 					
-					<p>命令参数</p>
-					<div><b v-for="item in commandParams" :key="item">{{item[0]}}:{{item[1].join(',')}},<br/></b></div>
+					<!-- <div><b v-for="item in commandParams.slice(0, 100)" :key="item">{{item[0]}}:{{item[1].join(',')}},<br/></b></div> -->
 				</div>
 				<div class="audio-panel__body__results" v-html="message">
 				</div>
