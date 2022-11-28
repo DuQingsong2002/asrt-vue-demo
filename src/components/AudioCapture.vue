@@ -54,7 +54,6 @@ onBeforeMount(() => {
 	// 		CommandResolve.registerCommandParams('target', cache.result)
 	// 	}
 	// }
-	
 })
 
 onMounted(() => {
@@ -74,10 +73,10 @@ onUnmounted(() => {
 const executeCommand = function(command, params) {
 
 switch(command) {
-	case 'open':
+	case '打开':
 		console.log('执行命令: 打开' + params);
 		break;
-	case 'target':
+	case '定位':
 		console.log('执行命令: 定位' + params);
 		break;
 	default:
@@ -152,7 +151,7 @@ const upload = function(){
 				const end = performance.now()
 				// message.value = resp.result + '\n执行命令: ' + command + params.slice(0, 10) + '\n耗时: '
 				executeCommand(command, params)
-				message.value = [`识别拼音${resp.result}`, `执行命令`, `<b>${command} ${params.slice(0, 10)}</b>`, `总计耗时: ${(end-starta).toFixed(2)}ms`, `命令解析耗时: ${(end-start).toFixed(2)}ms`].join('<br />')
+				message.value = [`识别拼音${resp.result}`, `执行命令`, `<b>${command} ${params.slice(0, 10)}</b>`, `总计耗时: ${(end-start).toFixed(2)}ms`, `命令解析耗时: ${(end-start).toFixed(2)}ms`].join('<br />')
 
 			})
 		})
@@ -218,7 +217,7 @@ const handleChangeAudio = function(audioItem) {
 				</div>
 				<div class="audio-panel__body__list">
 					<p>支持命令</p>
-					<div><b v-for="item in commands" :key="item">{{item[0]}}:{{item[1].join(',')}},<br/></b></div>
+					<div><b v-for="item in commands" :key="item">{{item[0]}}:{{item[1]}},<br/></b></div>
 					
 					<!-- <div><b v-for="item in commandParams.slice(0, 100)" :key="item">{{item[0]}}:{{item[1].join(',')}},<br/></b></div> -->
 				</div>

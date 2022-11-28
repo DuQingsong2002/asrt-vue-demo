@@ -28,19 +28,6 @@ interface Keywords {
   speech: number[][],
 }
 
-
-/**
- * 拼音文字解析
- * @param {Array<String>} speechs 
- */
- export const resolveWords = function(speechs: string[]) {
-	// let result = ''
-	// speechs.forEach(item => {
-	// 	result += dict[item.substring(0, item.length - 1)] || ''
-	// })
-	// return result
-}
-
 /**
  * 
  * @param texts 文字
@@ -74,7 +61,74 @@ export const resolveWordsByIndexes = function(indexes: [Pin_Yin, Sheng_Diao][]) 
  * @param {String} language 文字
  */
 export const resolveCommand = function(speechs: string[], language: string[]) {
-  
+
+    
+  const weightMap:Map<string, WeightList> = new Map()
+  commands.forEach(command => {
+    if(command.length <= speechs.length) {
+      weightMap.set(command, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    }
+  })
+
+  weightMap.forEach((weight, param) => {
+    speechs = speechs.slice(0, param.length)
+    language = language.slice(0, param.length)
+    // 参数对应的词典树索引
+    const paramIndexes = resolveSpeechs(Array.from(param))
+    // 索引对应的拼音
+    const probSpeechs:string[][] = paramIndexes.map(item => item.map(i => i[0]+i[1]))
+    // 
+    const probLabels = resolveWordsByIndexes(paramIndexes)
+
+    const L_1_LCS = getLCS(speechs, probSpeechs)
+    const L_2_LCS = getLCS(language, probLabels)
+    const L_5_LCS = getLCS(speechs.map(s=>s.slice(0, -1)), probLabels.map(i=>i.map(i => i?.slice(0, -1))))
+    // const L_2_LCS = getLCS(language, probLabels)
+    // const L_2_LCS = getLCS(language, probLabels)
+    // 0. 全拼最大连续匹配个数
+    // 1. 文字最大连续匹配个数
+    // 2. 全拼连续累计匹配次数 
+    // 3. 文字连续匹配次数
+    // 4. 拼音最大连续匹配个数
+    // 5. 拼音连续匹配次数
+    // 6. 全拼包含个数
+    // 7. 拼音包含个数
+    // 8. 文字包含个数
+    // 9. 各种模糊匹配
+    weight[0] = L_1_LCS.maxLen
+    weight[1] = L_2_LCS.maxLen
+    // weight[2] = L_1_LCS.total
+    // weight[3] = L_2_LCS.total
+    weight[4] = L_5_LCS.maxLen
+    weight[5] = L_5_LCS.maxLen
+    weight[6] = L_5_LCS.maxLen
+
+    
+    // 七八级权重分析
+    const flatProbSpeechs = probSpeechs.flat()
+    speechs.forEach(speech => {
+      flatProbSpeechs.forEach(sp => {
+        // 三级全拼
+        // if(sp === speech) weight[6]++
+        // 四级不带音调
+        // if(sp.slice(0, -1) === speech.slice(0, -1)) weight[7]++
+
+        if(sp.slice(0, 1) === speech.slice(0, 1)) weight[9]++
+      })
+    })
+
+    // 五级...
+    probLabels.flat(Infinity).forEach((word) => {
+      // if(language.includes(word)) {
+      //   weight[8]++
+      // }
+    })
+
+  })
+
+  return Array.from(weightMap)
+    .map(item => [item[0], item[1].reduce((r, c, k) => r + c * globalOptions.weightLevel[k], 0)])
+    .sort((a,b) => (b[1] as number) - (a[1] as number))[0][0]
 }
 
 /**
@@ -84,8 +138,7 @@ export const resolveCommand = function(speechs: string[], language: string[]) {
  * @param {String} language 文字
  */
 export const resolveCommandParams = function(command: string, speechs: string[], language: string[]) {
-  // const words = resolveWords(speechs)
-  const params = commandParams.get(command || 'target')
+  const params = commandParams.get(command)
   if(!params) return
 
   // { 命令参数 => 权重 }
@@ -96,11 +149,6 @@ export const resolveCommandParams = function(command: string, speechs: string[],
     }
   })
 
-  // example: da3 kai1 biao1 tu2 biao1 hui4
-  // slice(2)
-  // 给定一组数据，查找该数据在example中最大连续匹配的次数
-  // biao1 tu2
-
   weightMap.forEach((weight, param) => {
     
     // 参数对应的词典树索引
@@ -110,10 +158,10 @@ export const resolveCommandParams = function(command: string, speechs: string[],
     // index
     const probLabels = resolveWordsByIndexes(paramIndexes)
     // 
-  // 0. 全拼最大连续匹配个数 全拼最大连续长度
-  // 1. 文字最大连续匹配个数 文字最大联系长度
-  // 2. 全拼连续累计匹配次数  拼音最大连续长度
-  // 3. 文字连续匹配次数 首拼最大连续长度
+  // 0.  全拼最大连续长度
+  // 1.  文字最大联系长度
+  // 2.   拼音最大连续长度
+  // 3.  首拼最大连续长度
 
     const record: number[][] = new Array(speechs.length).fill(Array.from(new Array(probSpeechs.length), () => [0, 0, 0, 0]))
     for(let i = 0; i < speechs.length; ++i) {
@@ -193,13 +241,9 @@ export const resolveCommandParams = function(command: string, speechs: string[],
  */
 export const resolveAll = function(speechs: string[], language: string[]) {
 
-  const words = ''??resolveWords(speechs)
-  const command = ''??resolveCommand(speechs, language)
-  // 去掉识别的命令数量，这里没处理好... ...后面再改了
+  const command = resolveCommand(speechs, language)
   const params = resolveCommandParams(command, speechs, language)
-  console.debug('>>>', params)
   return {
-    words,
     command,
     params
   }

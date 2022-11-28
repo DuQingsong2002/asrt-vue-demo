@@ -23,7 +23,7 @@ let invertedIndex:InvertedIndex
 /**
  * 命令 (命令 => 对应的关键词)
  */
- export const commands:Map<string, string[]> = new Map()
+ export const commands:Map<string, string> = new Map()
 
 /**
  * 命令参数 (命令 => 对应的参数)
@@ -48,7 +48,7 @@ export const getDict = () => dictMap
 export const getInvertedIndex = () => invertedIndex
 
 
-export const registerCommand = function(command, ...keywords) {
+export const registerCommand = function(command, keywords) {
 
   if(commands.get(command)) {
     console.warn(`命令${command}已存在`)
